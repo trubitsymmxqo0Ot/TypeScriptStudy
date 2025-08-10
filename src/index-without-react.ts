@@ -57,7 +57,7 @@ type SubType = {
 
 const subType: SubType = { name: "name", age: 123 };
 const superType: SuperType = subType;
-
+console.log("this is subType", subType, "this is supertype", superType);
 /*
       Тут SubType (подтип) имеет какие-то поля, которые есть у SuperType (супер тип), но при этом добавляет какие-то свои поля, то есть, он как бы расширяется
       от супер типа, пускай явно это тут и не указано.
@@ -83,4 +83,77 @@ const subType2: SuperType2 = { name: "name" };
       подтип включает все свойства и/или методы надтипа, также может добавлять свои
       надпит может содержать меньше свойств и/или методов, чем подтип
       объект подтипа может быть присвоем переменной надтипа, обратное действие не всегда возможно без приведения типов
+*/
+
+/*
+      Специальные типы
+      any - отключает проверку типов, можно использовать все что угодно. Он является и подтимом, и надпитом одновременно для всего
+*/
+//unknown - является что-то типо безопасной вариацией any, засчет unknown нам придется делать проверки на типы:
+function logData(data: unknown) {
+  let value: string;
+  if (typeof data === "string") {
+    value = data;
+  }
+  if (Array.isArray(data)) {
+    data.push(value);
+  }
+}
+//То есть тут в коде мы явно проверяем каждый тип для unknow и уже на основе определенного полученного типа делаем какие-либо действия
+//unkown является супертипом для всех других типов, но при этом он не может быть подтипом, кроме себя и any
+
+//Так делать можно
+let someValue: unknown;
+someValue = "string";
+someValue = 123;
+someValue = [];
+someValue = {};
+
+//Так делать нельзя
+let someValue2: unknown;
+// let someString: string = someValue2;
+
+//never - пустое множество, своего рода значение, которое невозможно достичь. Он является подтипом для всех супер типов
+let neverType: never;
+let stringNever: string = neverType;
+
+//Так делать уже нельзя
+let stringNever2: string;
+// let neverType2: never = stringNever2;
+
+enum Values {
+  FIRST,
+  SECOD,
+  THIRD,
+}
+function fn(value: Values) {
+  switch (value) {
+    case Values.FIRST:
+      return value;
+    case Values.SECOD:
+      return value;
+    case Values.THIRD:
+      return value;
+    default:
+      return value;
+  }
+}
+/*
+      Тут в default кейсе нам вернется never. Все потому, что мы обработали все кейсы, когда у нас может быть First, Second, Third и больше значений
+      просто быть не может, поэтому дефолтный кейс - это кейс, который никогда не произойдет, ведь до него обработано было все
+*/
+
+//void - тип, который означает, что фукнция ничего не возращает:
+function fn2() {
+  console.log();
+}
+fn2();
+
+/*
+      Подведем итог:
+      ТИП         СУПЕР ТИП ДЛЯ ВСЕХ ТИПОВ      ПОДТИП ДЛЯ ВСЕХ ТИПОВ
+     
+      unknown                да                          нет
+      any                    да                          да
+      never                 нет                          да
 */

@@ -11,7 +11,7 @@ type Mods = "development" | "production";
 interface ModeEnv {
   mode: Mods;
   port: number;
-  analyzer: boolean;
+  analyzer?: boolean;
 }
 
 module.exports = (env: ModeEnv) => {
@@ -44,6 +44,11 @@ module.exports = (env: ModeEnv) => {
       alias: {
         "@": path.resolve(__dirname, "src"),
       },
+    },
+    devtool: "eval",
+    devServer: {
+      open: true,
+      port: env.port ?? "3000",
     },
     module: {
       rules: [
