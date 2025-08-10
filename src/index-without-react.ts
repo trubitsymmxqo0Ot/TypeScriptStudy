@@ -1,84 +1,29 @@
-//Преобразование типов
-
+//Ловушка с Object, object
 /*
-      Если мы получаем какой-то объект с бэка, либо какую-то строку мы распарсили в объект, то typescript может не понять, что это вообще за объект такой,
-      чтобы указать ему, что это такое, мы можем использовать конструкцию as, так мы привели к типу, который указали для объекта:
+      Важно понимать, что если мы укажем Object в типе данных, то по сути мы будем принимать практически любой тип данных на вход, так как это тип данных
+      из которых строится многое в js, но если мы укажем именно object, то в таком случае мы будем ожидать только ссылочные объекты и ничего 
+      больше: 
 */
-interface Person {
-  age: number;
-  text: string;
-}
-const obj = {
-  age: 123,
-  text: "hi",
-} as Person;
+type EmptyObject = {};
+const obj1: EmptyObject = { age: 123 };
+const obj2: EmptyObject = 1;
+const obj3: EmptyObject = "";
+const obj4: EmptyObject = () => {};
+const obj5: EmptyObject = null;
+const obj6: EmptyObject = undefined;
 
-/*
-Но такой метод в проде лучше использовать аккуратно, а все потому, что as некорретно работает:
-*/
-interface Person2 {
-  age: number;
-  text: string;
-  password: string;
-}
-const obj2 = {
-  age: 123,
-  text: "hi",
-};
-/*
-Тут проблема в том, что мы указали 3 обязательных поля, но ts просто проигнорировал тот факт, что password у нас отсутствует, на самом деле, он думает, что 
-такое поле там есть, поэтому и не ругается. Также, если мы добавим что-то рандомное в объект, например adfodafwsf: 123123, то ts поймет, что поля
-password в объекте нет и начнет ругаться, но на adfodafwsf: 123123 ругаться не будет (важно, что я говорю про буквальное добавление в 
-объект, не через obj2.adfodafwsf = 123123, а именно физически написать в объект новое поле).
+const obj7: Object = {};
+const obj8: Object = 1;
+const obj9: Object = "";
+const obj10: Object = () => {};
+const obj11: Object = null;
+const obj12: Object = undefined;
 
-Тем не менее, на совсем очевидные ошибки ts будет ругаться 
-const one = 'asdwd' as number; - тут будет ошибка.
+const obj13: object = {};
+const obj14: object = () => {};
+const obj15: object = new Date();
 
-Но если нам нужно это обойти, что совсем не советуется, то можно написать так:
-*/
-const one = "123123" as unknown as number; //Такое ts съест
-
-//Такая запись бывает нужна для тестирования, но в проде такое ни в коем случае использовать нельзя
-/*
-Также, вместо as существует запись satisfies, такая запись будет уже корректно проверять объект, но разница в том, что он просто проверит 
-совпадения между типом и объектом, а сам объект к типу приводить не будет, он будет сырым:
-*/
-
-type Person3 = {
-  age: number;
-  text: string;
-};
-const obj3 = {
-  age: 123,
-  text: "string",
-} satisfies Person3;
-
-//В целом, если речь идет о каких-то данных с бэка, о парсе данных, то мы можем использовать as, речи о безопасности идти и не может, т.к. мы можем получить что угодно
-
-type User = {
-  user: string;
-};
-
-function JSONParse<T>(data: string): T {
-  return JSON.parse(data) as T;
-}
-
-const parsedJson = JSONParse<User>('{"user":"qwed"}'); //Это небезопасно!
-
-//Безопасное использование
-type Person4 = {
-  name: string;
-  age: number;
-  description: string;
-};
-const obj4 = {
-  name: "hello",
-  age: 23,
-  description: "ewfwefewf",
-};
-
-function keys<T extends object>(data: T): Array<keyof T> {
-  return Object.keys(data) as Array<keyof T>;
-}
-const k = keys(obj);
-//Так мы поулчаем массив ключей от Person, если мы будем писать какую-то функцию, которая на вход ожидает ключи. мы сможем туда их передать
+// const obj16: object = 1; тут такое ts не примет, т.к. это не ссылочные типы данных
+// const obj17: object = ""; тут такое ts не примет, т.к. это не ссылочные типы данных
+const obj18: object = null;
+const obj19: object = undefined;
