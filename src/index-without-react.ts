@@ -1,29 +1,66 @@
-//Ловушка с Object, object
 /*
-      Важно понимать, что если мы укажем Object в типе данных, то по сути мы будем принимать практически любой тип данных на вход, так как это тип данных
-      из которых строится многое в js, но если мы укажем именно object, то в таком случае мы будем ожидать только ссылочные объекты и ничего 
-      больше: 
+      Операторы typeof и keyof
+      Вообще существует 2 оператора typeof: первый - работает в real time и это стандартный оператор js, он позволяет узнать тип данных в моменте и что-то
+      с этой инофрмацией сделать, второй же typeof работает почти также, но с некоторыми исключениями.
+
+      Мы также получаем тип данных чего-либо засчет typeof в TS, то мы можем вложить эту информацию в тип и затем использовать собственно сам тип для
+      типизации:
 */
-type EmptyObject = {};
-const obj1: EmptyObject = { age: 123 };
-const obj2: EmptyObject = 1;
-const obj3: EmptyObject = "";
-const obj4: EmptyObject = () => {};
-const obj5: EmptyObject = null;
-const obj6: EmptyObject = undefined;
 
-const obj7: Object = {};
-const obj8: Object = 1;
-const obj9: Object = "";
-const obj10: Object = () => {};
-const obj11: Object = null;
-const obj12: Object = undefined;
+const obj = {
+  age: 23,
+  name: "some name",
+};
+type Person = typeof obj;
+const obj2: Person = {
+  age: 1,
+  name: "My name is...",
+};
 
-const obj13: object = {};
-const obj14: object = () => {};
-const obj15: object = new Date();
+//Также, мы можем использовать и на обычные типы данных этот оператор
+const color = "red"; //Очень важно сделать его неизменяемым либо через cont color ..., либо через as const (сделать его readonly)
+type Color = typeof color;
+const green: Color = "red";
 
-// const obj16: object = 1; тут такое ts не примет, т.к. это не ссылочные типы данных
-// const obj17: object = ""; тут такое ts не примет, т.к. это не ссылочные типы данных
-const obj18: object = null;
-const obj19: object = undefined;
+//Ещё мы можем доставать типизацию функции
+function getTypeFunction(age: number): string {
+  return "Sdasd";
+}
+type TypeFunction = typeof getTypeFunction;
+const someFun = (many: number): TypeFunction => {
+  return (many) => "masadasdasdny";
+};
+
+//Можно достать значение тип из функции, который возращается в return
+function getTypeFunctionReturn(user: string): string {
+  return user;
+}
+type TypeFunctionReturn = ReturnType<typeof getTypeFunctionReturn>;
+const someString: TypeFunctionReturn = "someasdasd";
+
+//Можно даже достать аргументы функции в качестве типов и использовать их
+function getTypeFunctionArgs(user: string, age: number, text: string) {
+  return {
+    user,
+    age,
+    text,
+  };
+}
+type TypeFunctionArgs = Parameters<typeof getTypeFunctionArgs>;
+const objType: TypeFunctionArgs = ["some user", 123, "text"];
+//Важно, что он создает кортеж параметров функции, массив, соответственно, с массивом нам и нужно работать
+
+//keyof - позволяет достать ключи из объекта
+
+const obj4 = {
+  name: "123123",
+  text: "fdgdsghfg",
+  info: "onog09fdg",
+};
+type PersonKey = keyof typeof obj4; //Мы достаем ключи и преобразуем их в типы данных
+
+//Тут мы из дженерика T достали ключи с помощью дженерика K
+function getByKey<T, K extends keyof T>(obj: T, key: K): T[K] {
+  return obj[key];
+}
+getByKey(obj4, "info");
