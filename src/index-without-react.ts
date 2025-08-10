@@ -157,3 +157,35 @@ fn2();
       any                    да                          да
       never                 нет                          да
 */
+
+//Составные типы
+type City = {
+  address: string;
+  cords?: number[];
+  city: string;
+};
+
+interface User {
+  firstName: string;
+  lastName: string;
+  age: number;
+  address: City;
+}
+
+const SomeUser: User = {
+  firstName: "first",
+  lastName: "last",
+  age: 12,
+  address: {
+    address: "some address",
+    city: "some city",
+    cords: [5, 5, 3],
+  },
+};
+
+type ComponentsProps = {
+  className: string;
+  color: "red" | "green";
+};
+
+type onClick = (event: HTMLDivElement) => void;
