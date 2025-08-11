@@ -1,47 +1,47 @@
-//asserts - это тип, с помощью которого мы четко можем сказать ts, что он, например точно не null || не undefined и там что-то есть
-function assertNotNull(value: unknown): asserts value {
-  if (value === null || value === undefined) {
-    throw new Error("Value is null or undefined");
+//Перегрузка функций
+/*
+  Перегрузка функций - это когда мы на какую-то одну функицию делаем несколько реализаци. Условно, 1 и та же функция может принимать разные
+  аргументы в себя и делать какие-то разные штуки, но смысл этой функции будет одним и тем же
+*/
+function makeDate(timestamp: number): Date;
+function makeDate(month: number, day: number, year: number): Date;
+function makeDate(moreTimeStamp: number, day?: number, year?: number): Date {
+  if (day !== undefined && year !== undefined) {
+    return new Date(year, moreTimeStamp, day);
+  } else {
+    return new Date(moreTimeStamp);
   }
 }
 
-assertNotNull(null);
-/*
-  По сути эта функция выступает как некий валидатор, мы прокидываем какие-то данные и, например, пользователю, может отдать какой-то ответ, 
-  что что-то заполненно неправильно или какое-то действие неверно. Например, мы можем как-то логировать через конструкцию try catch
-*/
-/*
-  Тут как бы далее ts понимает, что ниже по коду у нас точно не может быть undefined или null и ругаться на undefined или null не должен, но это
-  не точно, примеров использования такого вида записи нет. Такой подход называется asserts condition (не изменяет тип).
-
-  Есть ещё также запись вида asserts value is Type (изменяет тип), такой тип данных проверяет какой-то сценарий, когда у нас тот или иной конкретный тип 
-  не соответствует тем данным, которые мы получили:
-*/
-interface User {
-  name: string;
-  age: number;
-}
-
-function assertIsUser(data: any): asserts data is User {
-  if (typeof data !== "object" || data === null) {
-    throw new Error("Object expected");
-  }
-  if (typeof data.name !== "string") {
-    throw new Error("Property 'name' must be a string");
-  }
-  if (typeof data.age !== "number") {
-    throw new Error("Property 'age' must be a number");
-  }
-}
-
-const object = {
-  name: "some name",
-};
-
-assertIsUser(object);
+const d1 = makeDate(123123);
+const d2 = makeDate(5, 5, 5);
+// const d3 = makeDate(1, 3);
 
 /*
-  Вообще, ошибки не будет, в IDE, несмотря на то, что мы вроде бы не указали age, но все дело в том, что у нас тип name совпадает с тем типом,
-  который мы обработали в if, если запустить такой код, то он все равно упадет с ошибкой. В идеале такой код также лучше обработать конструкцией 
-  try catch, где в try мы будем запихивать вызов функции assertIsUser, а в catch будем обрабатывать ошибки, если они вдруг возникли
+  Тут у нас функция может выполнить сразу несколько операций, это и есть перегрузка функций. При этом, последний const d3 у нас в комменте потому, 
+  что функция, исходя из записей может либо принять 1 аргумент, либо 3 аргумента сразу, но никак не 2, поэтому будет ошибка, так мы сделали перегрузку
+  функций и позволили функции использовать сразу несколько инструкций.
+
+  Тут, по факту, мы для одной реализации объявляем несколько сигнатур, несколько инструкций и в зависимости от реализации мы можем как-то по-разному 
+  использовать функцию. При этом, даже возращаемое значение не обязательно должно быть одинаковым, оно может отличаться друг от друга. И вместо
+  условного date в одну из реализаций мы можем запихнуть условный number, но тогда, естественно, нужно будет и писать вызов этой функции в зависимости 
+  от условия.
+
+  При этом, конечно же, существуют ненужные перегрузки функций, когда мы могли обойтись и без них:
 */
+
+//Тут вместо перегрузки мы могли просто указать, что two и three необязательны, поэтому смысла от перегрузки нет
+function fn(one: string): number;
+function fn(one: string, two: string): number;
+function fn(one: string, two: string, three: boolean): number;
+
+const constFn1 = fn("sadasd");
+const constFn2 = fn("sdavcvd", "asdasd");
+const constFn3 = fn("sadasd", "asdasd", false);
+
+//Тут тоже бессмысло, вместо того, чтобы перегружать функцию мы могли просто написать или string, или number, как в примере ниже.
+function fn2(one: string): number;
+function fn2(one: number): number;
+
+function fn2(one: string | number): number;
+//Перегружать функцию имело бы смысл, если бы у нас возращаемый тип был бы другим, а так он один и тот же и смысла от перегрузки никакого абсолютно
