@@ -1,78 +1,47 @@
-//Utility types
+//asserts - это тип, с помощью которого мы четко можем сказать ts, что он, например точно не null || не undefined и там что-то есть
+function assertNotNull(value: unknown): asserts value {
+  if (value === null || value === undefined) {
+    throw new Error("Value is null or undefined");
+  }
+}
+
+assertNotNull(null);
 /*
-  Утилитарные типы - это упрощение для кода, их существует очень много и ознакомиться с ними можно в документации ts, сейчас будет перечисление лишь
-  некоторых из них 
-
-  Awaited<Type> - утилитарный тип, который рекурсивно разворачивает промисы достает их внутренности. Грубо говоря, у нас есть
-  обычный await для промисов в js, это тоже самое, но для типов
-
-  Partial - Делает для типа все поля опциональными (в прошлом коммите уже писали аналог)
-
-  Required - делает все поля обязательными 
-
-  Readonly - ну readonly и в Африке readonly, делает все поля только для чтения 
-
-  Pick - позволяет точечно забрать какие-то поля из типа или интерфейса 
+  По сути эта функция выступает как некий валидатор, мы прокидываем какие-то данные и, например, пользователю, может отдать какой-то ответ, 
+  что что-то заполненно неправильно или какое-то действие неверно. Например, мы можем как-то логировать через конструкцию try catch
 */
+/*
+  Тут как бы далее ts понимает, что ниже по коду у нас точно не может быть undefined или null и ругаться на undefined или null не должен, но это
+  не точно, примеров использования такого вида записи нет. Такой подход называется asserts condition (не изменяет тип).
 
+  Есть ещё также запись вида asserts value is Type (изменяет тип), такой тип данных проверяет какой-то сценарий, когда у нас тот или иной конкретный тип 
+  не соответствует тем данным, которые мы получили:
+*/
 interface User {
+  name: string;
   age: number;
-  userName: string;
-  text: string;
-  info: string;
 }
 
-type NewType = Pick<User, "userName" | "age" | "text">; //Теперь мы имеем поля userName, age и text внутри NewType
-
-//Omit - противополность Pick, он копирует типизацию из типа или интерфейса, но исключает указанные поля
-
-type NewOmitType = Omit<User, "age" | "userName" | "text">; //Теперь мы имеем только поле info
-
-//Но если нам нужно вытащить какое-то 1 поле, то мы просто можем написать так:
-
-type EaseType = User["age"];
-
-//Exclude - позволяет убрать какие-то типы, но из утилитарных типов данных, а не из типов или интерфейса
-type UtilTypes = "red" | "green" | "yellow" | "blue" | "white" | "black";
-type NewUtilType = Exclude<UtilTypes, "red" | "green" | "yellow">; //Получим "white" | "black" | "blue"
-
-//Extract - позволяет достать какие-то определенные типы из утилизартных типов данных
-type NewUtilType2 = Extract<UtilTypes, "white" | "black">; //Получим только "white" | "black"
-
-//ReturnType - позволяет достать тип из функции
-function fn(arg: number): string {
-  return "";
+function assertIsUser(data: any): asserts data is User {
+  if (typeof data !== "object" || data === null) {
+    throw new Error("Object expected");
+  }
+  if (typeof data.name !== "string") {
+    throw new Error("Property 'name' must be a string");
+  }
+  if (typeof data.age !== "number") {
+    throw new Error("Property 'age' must be a number");
+  }
 }
-type ReturnTypeFn = ReturnType<typeof fn>;
-//Часто такой кейс используется, когда нам нужно что-то достать из библиотеки, условно ReturnType<typeof React.render>
 
-//Parameters - получаем тип аргументов функции
-function fn2(arg: number, props: string): string {
-  return "";
-}
-type ReturnParametersFn = Parameters<typeof fn2>; //Получим [arg: number, props: string]
+const object = {
+  name: "some name",
+};
+
+assertIsUser(object);
 
 /*
-  Uppercase - позволяет сделать все буквы большими
-  Lowercase - позволяет сделать все буквы маленькими
-  Capitalize - позволяет сделать первую букву начала слова большой
-  Uncapitalize - позволяет сделать первую букву начала слова маленькой
-
-  Эти утилитарные типы служат для того, чтобы как-то видоизменять ключи типов
+  Вообще, ошибки не будет, в IDE, несмотря на то, что мы вроде бы не указали age, но все дело в том, что у нас тип name совпадает с тем типом,
+  который мы обработали в if, если запустить такой код, то он все равно упадет с ошибкой. В идеале такой код также лучше обработать конструкцией 
+  try catch, где в try мы будем запихивать вызов функции assertIsUser, а в catch будем обрабатывать ошибки, если они вдруг возникли
 */
-
-//Record - нужна для работы с объектами. Позволяет изменить литеральный тип таким образом, чтобы значения этого типа стали ключами для объекта
-type Color = "red" | "green" | "white";
-const object: Record<Color, string[]> = {
-  red: ["123"],
-  green: ["123"],
-  white: ["sdfs"],
-};
-//Первый аргумент - литеральный тип, а второй аргумент - это тип данных, которые мы помещаем в виде значения для ключей
-
-//Patial - уже рассматривали. делает поля опциональными, но мы можем миксовать утилитарные типы:
-const object2: Partial<Record<Color, string[]>> = {
-  red: ["123123"],
-  green: ["sadasdas"],
-};
-//Таким образом, мы литеральный тип в ключи объекта, задали тип данных, которые хранят эти ключи и плюс к этому сделали эти пары опциональными
