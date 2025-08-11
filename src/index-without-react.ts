@@ -1,75 +1,92 @@
-//Разница между type и interface
-/*
-  Как таковой, разницы особой между ними нет, но есть маленькие детали, которые все же отличаются. Например, если мы хотим задать
-  какой-то литерал или, например, алиас с number[], то тогда мы можем воспользоваться только типом, если попробуем воспользоваться интерфейсом,
-  то ts будет ругаться на это:
-*/
-type AliasType = "red" | "green";
-type IdType = number[];
-// interface AliasInterface = "red" | "green";
-// interface IdInterface = number[];
-
-/*
-  Также при наследовании будет разный синтаксис. С точки зрения ts - это разные операции, но с точки зрения решения проблемы - результат будет одним и тем
-  же:
-*/
-type Type1 = {
+//Mapped types - это типы, которые позволяют создавать какие-то новые типы на основе уже существующих, при этом создавая новые поля
+//Вот как мы можем видоизменять поля:
+interface User {
   userName: string;
-};
-type Type2 = Type1 & {
-  //Эта операция называется интерсекшион
   age: number;
+  info: string;
+}
+type ReadOnly<T> = {
+  //Добавить новое поле мы не сможем, будет any
+  readonly [Key in keyof T]?: T[Key];
+};
+type NewUser = ReadOnly<User>; //Таким образом, теперь все поля interface User у нас не обязательны только для чтения
+//Также, мы можем сделать и обратное действие, наоборот убрать readnonly или необязательные поля
+
+type DeleteReadOnly<T> = {
+  -readonly [Key in keyof T]-?: T[Key];
+};
+type NewUserWithoutReadOnly = DeleteReadOnly<NewUser>; //Теперь у нас поля без readnonly и они все обязательны
+
+//Также, мы можем создать и объект, и массив с четко заданными типами
+type ArrayAnalog<T> = {
+  [Key in number]: T;
+};
+const obj3: ArrayAnalog<string> = ["123123", "1231", "123"];
+
+type ArrayAnalog2<T> = {
+  [Key in string]: T;
+};
+const obj4: ArrayAnalog2<string> = {
+  asdasdasd: "asdasd",
+  "123123": "123123",
 };
 
-interface Interface1 {
+/*
+  Также, мы можем исключить что-либо с помощью mapped type какое-либо поле. В этом подходе используется утилитарный тип, который позволяет 
+  в целом исключить какое-то поле из type или interface, в этом примере просто для наглядности показывается:
+*/
+interface User {
   userName: string;
-}
-interface Interface2 extends Interface1 {
   age: number;
+  type: string;
+}
+interface Car {
+  carNumber: string;
+  car: string;
+  type: string;
+}
+interface RandomObj {
+  someValue: string;
+  someNumber: number;
+  type: string;
 }
 
-/*
-  Также важно, что если мы создадим 2 интерфейса с одинаковыми именами, то они будут с точки зрения тайпскрипта объединены в один интерфейс и будет 
-  доступ сразу и к полям первого интерфейса, и к полям второго интерфейса. Если же мы сделаем такое с типом, то нам вернется ошибка, каждый тип
-  будет уникальным
-*/
+type WithoutType<T> = {
+  [Key in keyof T as Exclude<Key, "type">]: T[Key];
+};
+type newUser = WithoutType<User>;
+type newCar = WithoutType<Car>;
+type newRandomObj = WithoutType<RandomObj>;
+//Теперь все новые типы без type
 
-interface Base {
+//Также, мы можем и перезаписывать какие-то ключи в полях
+interface User2 {
   userName: string;
-}
-interface Base {
   age: number;
+  type: string;
 }
-const obj: Base = {
-  userName: "fweddf",
-  age: 12,
+interface Car2 {
+  carNumber: string;
+  car: string;
+  type: string;
+}
+interface RandomObj2 {
+  someValue: string;
+  someNumber: number;
+  type: string;
+}
+type NewNames<T> = {
+  [Key in keyof T as `get${Capitalize<string & Key>}`]: T[Key];
 };
-//Тут даже будет ошибка, если мы не напишем например userName в объект или age
+type newUser2 = NewNames<User2>;
+type newCar2 = NewNames<Car2>;
+type newRandomObj2 = NewNames<RandomObj2>;
+//Теперь все названия полей начинаются с get
 
 /*
-  Также, если мы хотим создать кортеж, то это нужно делать через тип, а не через интерфейс.
-  Кортеж - это массив с жестко заданными параметрами, такими как: четко заданный размер массива, четко заданные типы в каждой ячейке массива:
+  Что произошло в этом коде после as? 
+  Мы заюзали обратные кавычки, куда вставили новое слово - get
+  Далее, с помощью Capitalize мы следующую букву после get сделали заглавной.
+  После чего мы типизировали новую строку, где указали, что у нас будет string + T (string И T), где 
+  string - наше новое слово get, а T - это наша старая строка, которая была в каком-то интерфейсе, условно, это строка userName из интерфейса User2
 */
-type ArrayType = [number, string, 1];
-const obj2: ArrayType = [1, "string", 1]; //Если мы тут в конце вместо 1 напишем 2, то будет ошибка, либо если поменяем тип данных
-
-//Явный пример использования кортежа - это хук useState в React, где нам всегда возращается переменная со значением и также функция:
-type useType<T> = [T, (newValue: T) => void];
-
-/*
-  Также, если говорить про производительность, то лучше использоваться в этом случае интерфейсом, то есть extends, чем интерсекшином, так как
-  под капотом TS будет проводить меньше операций и это более легкая операция.
-
-  Также, если мы задаем какие-то функции в качестве типизации, то лучше использовать Type потому, что такая запись будет просто банально лучше читаться:
-*/
-type TypeFn = (arg: number) => string;
-interface InterfaceFn {
-  (arg: number): string;
-}
-
-const typeFn: TypeFn = (arg: number /*arg2: string будет ошибка*/) => {
-  return "123123";
-};
-const interfaceFn: InterfaceFn = (arg: number) => {
-  return "sdfsdf";
-};
