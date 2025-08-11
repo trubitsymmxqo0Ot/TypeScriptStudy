@@ -4,8 +4,9 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "module": "ESNext",
-    "target": "es5",
+    "module": "ESNext", //То, как мы будем работать с импортами, либо мы будем импортировать через require, либо через import
+    "target": "es5", //Версия js, в которую будет компилироваться код
+    "strict": true, //Строгий режим, который подсвечивает проблемные зоны
     "jsx": "react",
     "allowJs": true,
     "moduleResolution": "node",
