@@ -1,66 +1,58 @@
-/*
-      Операторы typeof и keyof
-      Вообще существует 2 оператора typeof: первый - работает в real time и это стандартный оператор js, он позволяет узнать тип данных в моменте и что-то
-      с этой инофрмацией сделать, второй же typeof работает почти также, но с некоторыми исключениями.
+//Optional и no-null assertion операторы
 
-      Мы также получаем тип данных чего-либо засчет typeof в TS, то мы можем вложить эту информацию в тип и затем использовать собственно сам тип для
-      типизации:
+/*
+  Optional оператор позволяет просто безопасно пройтись по объекту, если вдруг что-то будет null или undefined, то мы получим undefined, но не получим
+  ошибку, это просто как бы проверка на null или undefined.
+
+  Цепочка может быть вложенна без ограничений name?.age?.text?.someVariable?.section
+
+  Мы также можем обрабатывать через эту цепоку и массивы, и функции
 */
 
-const obj = {
-  age: 23,
-  name: "some name",
-};
-type Person = typeof obj;
-const obj2: Person = {
-  age: 1,
-  name: "My name is...",
-};
-
-//Также, мы можем использовать и на обычные типы данных этот оператор
-const color = "red"; //Очень важно сделать его неизменяемым либо через cont color ..., либо через as const (сделать его readonly)
-type Color = typeof color;
-const green: Color = "red";
-
-//Ещё мы можем доставать типизацию функции
-function getTypeFunction(age: number): string {
-  return "Sdasd";
-}
-type TypeFunction = typeof getTypeFunction;
-const someFun = (many: number): TypeFunction => {
-  return (many) => "masadasdasdny";
-};
-
-//Можно достать значение тип из функции, который возращается в return
-function getTypeFunctionReturn(user: string): string {
-  return user;
-}
-type TypeFunctionReturn = ReturnType<typeof getTypeFunctionReturn>;
-const someString: TypeFunctionReturn = "someasdasd";
-
-//Можно даже достать аргументы функции в качестве типов и использовать их
-function getTypeFunctionArgs(user: string, age: number, text: string) {
-  return {
-    user,
-    age,
-    text,
+interface Person {
+  name: string;
+  address?: {
+    city: string;
   };
+  someFun?: () => string;
+  array?: string[];
 }
-type TypeFunctionArgs = Parameters<typeof getTypeFunctionArgs>;
-const objType: TypeFunctionArgs = ["some user", 123, "text"];
-//Важно, что он создает кортеж параметров функции, массив, соответственно, с массивом нам и нужно работать
 
-//keyof - позволяет достать ключи из объекта
-
-const obj4 = {
-  name: "123123",
-  text: "fdgdsghfg",
-  info: "onog09fdg",
-};
-type PersonKey = keyof typeof obj4; //Мы достаем ключи и преобразуем их в типы данных
-
-//Тут мы из дженерика T достали ключи с помощью дженерика K
-function getByKey<T, K extends keyof T>(obj: T, key: K): T[K] {
-  return obj[key];
+function someAnswer(user: Person) {
+  console.log(user.address?.city); //Объект
+  console.log(user.someFun?.()); //Функция
+  console.log(user.array?.[0]); //Массив
 }
-getByKey(obj4, "info");
+someAnswer({ name: "12312" });
+
+/*
+  no-null assertion лучше не использовать. Если мы используем optional оператор как безопасную проверку на null или undefined, то no-null assertion выступает
+  в роли затычки, чтобы просто заткнуть TS и он не ругался на ошибку, которая может возникнуть при обращении к полю, которое может быть
+  потенциально undefined или null. 
+
+  Такое, естественно, в проде лучше не использовать
+*/
+
+interface Person2 {
+  name: string;
+  address?: {
+    city: string;
+  };
+  someFn?: () => number;
+  array?: number[];
+}
+function someAnswer2(user: Person) {
+  console.log(user.address!.city);
+}
+someAnswer2({ name: "asdfasdf" });
+
+/*
+  В целом, такую запись следует рассматривать как тот же ts-ignore, его лучше не использовать именно в продакш коде, но и такая запись может быть
+  валидна в некоторых случаях.
+
+  Например, если мы пишем какой-то конфиг на webpack и точно знаем, что мы типизировали то или иное и нам нужно сделать так, чтобы ts не ругался,
+  тогда мы спокойно может использовать оператор.
+
+  Либо, опять же, в мы можем использовать этот оператор в тестах, если это будет нужно по кейсу, но в проде такое мы не используем
+
+*/
