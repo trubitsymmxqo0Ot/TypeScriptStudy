@@ -1,92 +1,78 @@
-//Mapped types - это типы, которые позволяют создавать какие-то новые типы на основе уже существующих, при этом создавая новые поля
-//Вот как мы можем видоизменять поля:
+//Utility types
+/*
+  Утилитарные типы - это упрощение для кода, их существует очень много и ознакомиться с ними можно в документации ts, сейчас будет перечисление лишь
+  некоторых из них 
+
+  Awaited<Type> - утилитарный тип, который рекурсивно разворачивает промисы достает их внутренности. Грубо говоря, у нас есть
+  обычный await для промисов в js, это тоже самое, но для типов
+
+  Partial - Делает для типа все поля опциональными (в прошлом коммите уже писали аналог)
+
+  Required - делает все поля обязательными 
+
+  Readonly - ну readonly и в Африке readonly, делает все поля только для чтения 
+
+  Pick - позволяет точечно забрать какие-то поля из типа или интерфейса 
+*/
+
 interface User {
-  userName: string;
   age: number;
+  userName: string;
+  text: string;
   info: string;
 }
-type ReadOnly<T> = {
-  //Добавить новое поле мы не сможем, будет any
-  readonly [Key in keyof T]?: T[Key];
-};
-type NewUser = ReadOnly<User>; //Таким образом, теперь все поля interface User у нас не обязательны только для чтения
-//Также, мы можем сделать и обратное действие, наоборот убрать readnonly или необязательные поля
 
-type DeleteReadOnly<T> = {
-  -readonly [Key in keyof T]-?: T[Key];
-};
-type NewUserWithoutReadOnly = DeleteReadOnly<NewUser>; //Теперь у нас поля без readnonly и они все обязательны
+type NewType = Pick<User, "userName" | "age" | "text">; //Теперь мы имеем поля userName, age и text внутри NewType
 
-//Также, мы можем создать и объект, и массив с четко заданными типами
-type ArrayAnalog<T> = {
-  [Key in number]: T;
-};
-const obj3: ArrayAnalog<string> = ["123123", "1231", "123"];
+//Omit - противополность Pick, он копирует типизацию из типа или интерфейса, но исключает указанные поля
 
-type ArrayAnalog2<T> = {
-  [Key in string]: T;
-};
-const obj4: ArrayAnalog2<string> = {
-  asdasdasd: "asdasd",
-  "123123": "123123",
-};
+type NewOmitType = Omit<User, "age" | "userName" | "text">; //Теперь мы имеем только поле info
+
+//Но если нам нужно вытащить какое-то 1 поле, то мы просто можем написать так:
+
+type EaseType = User["age"];
+
+//Exclude - позволяет убрать какие-то типы, но из утилитарных типов данных, а не из типов или интерфейса
+type UtilTypes = "red" | "green" | "yellow" | "blue" | "white" | "black";
+type NewUtilType = Exclude<UtilTypes, "red" | "green" | "yellow">; //Получим "white" | "black" | "blue"
+
+//Extract - позволяет достать какие-то определенные типы из утилизартных типов данных
+type NewUtilType2 = Extract<UtilTypes, "white" | "black">; //Получим только "white" | "black"
+
+//ReturnType - позволяет достать тип из функции
+function fn(arg: number): string {
+  return "";
+}
+type ReturnTypeFn = ReturnType<typeof fn>;
+//Часто такой кейс используется, когда нам нужно что-то достать из библиотеки, условно ReturnType<typeof React.render>
+
+//Parameters - получаем тип аргументов функции
+function fn2(arg: number, props: string): string {
+  return "";
+}
+type ReturnParametersFn = Parameters<typeof fn2>; //Получим [arg: number, props: string]
 
 /*
-  Также, мы можем исключить что-либо с помощью mapped type какое-либо поле. В этом подходе используется утилитарный тип, который позволяет 
-  в целом исключить какое-то поле из type или interface, в этом примере просто для наглядности показывается:
+  Uppercase - позволяет сделать все буквы большими
+  Lowercase - позволяет сделать все буквы маленькими
+  Capitalize - позволяет сделать первую букву начала слова большой
+  Uncapitalize - позволяет сделать первую букву начала слова маленькой
+
+  Эти утилитарные типы служат для того, чтобы как-то видоизменять ключи типов
 */
-interface User {
-  userName: string;
-  age: number;
-  type: string;
-}
-interface Car {
-  carNumber: string;
-  car: string;
-  type: string;
-}
-interface RandomObj {
-  someValue: string;
-  someNumber: number;
-  type: string;
-}
 
-type WithoutType<T> = {
-  [Key in keyof T as Exclude<Key, "type">]: T[Key];
+//Record - нужна для работы с объектами. Позволяет изменить литеральный тип таким образом, чтобы значения этого типа стали ключами для объекта
+type Color = "red" | "green" | "white";
+const object: Record<Color, string[]> = {
+  red: ["123"],
+  green: ["123"],
+  white: ["sdfs"],
 };
-type newUser = WithoutType<User>;
-type newCar = WithoutType<Car>;
-type newRandomObj = WithoutType<RandomObj>;
-//Теперь все новые типы без type
+//Первый аргумент - литеральный тип, а второй аргумент - это тип данных, которые мы помещаем в виде значения для ключей
 
-//Также, мы можем и перезаписывать какие-то ключи в полях
-interface User2 {
-  userName: string;
-  age: number;
-  type: string;
-}
-interface Car2 {
-  carNumber: string;
-  car: string;
-  type: string;
-}
-interface RandomObj2 {
-  someValue: string;
-  someNumber: number;
-  type: string;
-}
-type NewNames<T> = {
-  [Key in keyof T as `get${Capitalize<string & Key>}`]: T[Key];
+//Patial - уже рассматривали. делает поля опциональными, но мы можем миксовать утилитарные типы:
+const object2: Partial<Record<Color, string[]>> = {
+  red: ["123123"],
+  green: ["sadasdas"],
 };
-type newUser2 = NewNames<User2>;
-type newCar2 = NewNames<Car2>;
-type newRandomObj2 = NewNames<RandomObj2>;
-//Теперь все названия полей начинаются с get
-
-/*
-  Что произошло в этом коде после as? 
-  Мы заюзали обратные кавычки, куда вставили новое слово - get
-  Далее, с помощью Capitalize мы следующую букву после get сделали заглавной.
-  После чего мы типизировали новую строку, где указали, что у нас будет string + T (string И T), где 
-  string - наше новое слово get, а T - это наша старая строка, которая была в каком-то интерфейсе, условно, это строка userName из интерфейса User2
-*/
+//Таким образом, мы литеральный тип в ключи объекта, задали тип данных, которые хранят эти ключи и плюс к этому сделали эти пары опциональными
