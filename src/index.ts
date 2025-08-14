@@ -1,162 +1,81 @@
-type ResponseApi<T> = {
-  status: "success" | "error" | "loading";
-  data?: T;
-  message?: string;
+type Direction = "up" | "down" | "left" | "right";
+function move(direction: Direction) {
+  const moved = "Движение: ";
+  switch (direction) {
+    case "down":
+      return moved + "down";
+    case "left":
+      return moved + "left";
+    case "right":
+      return moved + "right";
+    case "up":
+      return moved + "up";
+  }
+}
+console.log(move("down"));
+
+type HTTPMethod = "GET" | "POST" | "PUT" | "DELETE";
+type ApiEndpoint = {
+  api: string;
+  url: string;
+  subLayout: number;
 };
 
-function handleResponse(response: ResponseApi<{ user: string }>) {
-  if (response.status === "success") {
-    return {
-      status: response.status,
-      data: response.data,
-    };
-  } else if (response.status === "error") {
-    return {
-      status: response.status,
-      data: response.message,
-    };
+function fetchData(method: HTTPMethod, endpoint: ApiEndpoint) {
+    return `Вызван метод: ${method}, запрос на ${endpoint.api}${endpoint.url}${endpoint.subLayout}`;
+}
+
+console.log(fetchData("GET", { api: "api", url: "user", subLayout: 123 }));
+console.log(fetchData("POST", { api: "api", url: "user", subLayout: 123 }));
+console.log(fetchData("PUT", { api: "api", url: "shop", subLayout: 1 }));
+console.log(fetchData("DELETE", { api: "api", url: "empty", subLayout: 0 }));
+
+type Status = "adle" | "loading" | "success" | "error";
+type Result =
+  | { status: "adle" }
+  | { status: "loading" }
+  | { status: "success"; data: string }
+  | { status: "error"; error: string };
+
+function handleResult(result: Result) {
+  if (result.status === "success") {
+    return `Type: ${result.status}, data: ${result.data}`;
+  } else if (result.status === "error") {
+    return `Type: ${result.status}, error: ${result.error}`;
   } else {
-    return {
-      status: response.status,
-    };
+    return result.status;
   }
 }
 
-console.log(handleResponse({ status: "success", data: { user: "Alice" } }));
-console.log(handleResponse({ status: "error", message: "error!" }));
+console.log(handleResult({ status: "adle" }));
+console.log(handleResult({ status: "error", error: "some error" }));
+console.log(handleResult({ status: "loading" }));
+console.log(handleResult({ status: "success", data: "some data" }));
 
-type Config = {
-  mode: "light" | "dark" | "custom";
-  colors?: {
-    primary: string;
-    secondary: string;
-  };
-};
+type Color = "red" | "blue" | "green";
+type Size = "small" | "medium" | "large";
+type ClassName = `btn-${Color}-${Size}`;
 
-function applyConfig(config: Config) {
-  if (config.mode === "dark") {
-    return "dark";
-  } else if (config.mode === "light") {
-    return "light";
-  } else {
-    return {
-      mode: config.mode,
-      primary: config.colors,
-    };
-  }
+function applyClass(className: ClassName) {
+	return `Применен класс: ${className}`
 }
-console.log(
-  applyConfig({
-    mode: "custom",
-    colors: { primary: "#fff", secondary: "#000" },
-  })
-);
-console.log(applyConfig({ mode: "dark" }));
-console.log(applyConfig({ mode: "light" }));
+console.log(applyClass('btn-green-medium'));
+console.log(applyClass('btn-blue-large'));
 
-type User =
-  | {
-      type: "quest";
-      sessionId: string;
-    }
-  | {
-      type: "user";
-      id: string;
-      name: string;
-      role: "admin" | "customer";
-    };
+type EventType = "click" | "hover" | "scroll";
+type EventHandlers = Record<`on${Capitalize<EventType>}`, () => void>
+function setupHandlers(handlers: EventHandlers) {
+	return handlers.onClick();
+} 
+console.log(setupHandlers({ 
+	onClick: () => {},
+	onHover: () => {},
+	onScroll: () => {},
+}))
 
-function getUser(user: User) {
-  if (user.type === "quest") {
-    return `Гость: (сессия: ${user.sessionId}`;
-  } else {
-    return `Имя: ${user.name}, роль: ${user.role}`;
-  }
+type Routes = `/admin/${string}`;
+
+function navigate(route: Routes){
+	return `Переход на ${route}`;
 }
-console.log(
-  getUser({ type: "user", id: "123123", name: "Alice", role: "admin" })
-);
-console.log(
-  getUser({ type: "user", id: "394238", name: "Sergey", role: "customer" })
-);
-console.log(getUser({ type: "quest", sessionId: "fadf4213" }));
-
-type FormField = {
-  value: string;
-  isValid: boolean;
-  error?: string;
-};
-
-function getFieldStatus(field: FormField) {
-  if (field.isValid === true) {
-    return field.value;
-  } else {
-    return `${field.value} | ${field.error}`;
-  }
-}
-console.log(getFieldStatus({ value: "some value for true", isValid: true }));
-console.log(
-  getFieldStatus({
-    value: "some value for false",
-    isValid: false,
-    error: "Some error!",
-  })
-);
-
-type Draft = {
-  state: "draft";
-  content: string;
-};
-type Published = {
-  state: "published";
-  content: string;
-  publishedDate: Date;
-};
-type Archived = {
-  state: "archiver";
-  content: string;
-  archiveReason: string;
-};
-
-type Entity = Draft | Published | Archived;
-
-function logEntity(entity: Entity) {
-  if (entity.state === "draft") {
-    return `Чернковик: ${entity.content}`;
-  } else if (entity.state === "archiver") {
-    return `В архиве (${entity.archiveReason}: ${entity.content})`;
-  } else {
-    return `Опубликовано ${entity.publishedDate}: ${entity.content}`;
-  }
-}
-
-console.log(logEntity({ state: "draft", content: "Some state" }));
-console.log(
-  logEntity({
-    state: "published",
-    content: "some published state",
-    publishedDate: new Date(),
-  })
-);
-console.log(
-  logEntity({
-    state: "archiver",
-    content: "some archiver state",
-    archiveReason: "yep",
-  })
-);
-
-type Event2 =
-  | { type: "click"; x: number; y: number }
-  | { type: "keypress"; key: string }
-  | { type: "timer"; duration: number };
-
-function handleEvent(args: Event2){
-	if(args.type === 'click'){
-		return `Type: ${args.type}, x: ${args.x}, y: ${args.y}`
-	} else if(args.type === 'keypress'){
-		return `Type: ${args.type}, key: ${args.key}`
-	} else {
-		return `Type: ${args.type}, duration: ${args.duration}`;
-	}
-}
+navigate(`/admin/dashboard`);
